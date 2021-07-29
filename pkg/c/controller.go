@@ -3,6 +3,7 @@ package c
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/hirose31/s3surfer/pkg/m"
@@ -10,7 +11,7 @@ import (
 )
 
 type Controller struct {
-	bucket string
+	bucket *string
 	dfp    *os.File
 	v      v.View
 	m      *m.S3Model
@@ -30,7 +31,7 @@ func NewController(
 	}
 
 	c := Controller{
-		bucket,
+		&bucket,
 		dfp,
 		v.NewView(),
 		m.NewS3Model(),
@@ -45,10 +46,10 @@ func (c Controller) Debugf(format string, args ...interface{}) {
 
 func (c Controller) Run() error {
 	c.Debugf(">> Run\n")
-	c.Debugf("  bucket=%s\n", c.bucket)
+	c.Debugf("  bucket=%s\n", *c.bucket)
 
-	if c.bucket != "" {
-		c.m.SetBucket(c.bucket)
+	if *c.bucket != "" {
+		c.m.SetBucket(*c.bucket)
 	}
 
 	c.updateList()
@@ -63,13 +64,35 @@ func (c Controller) setInputCapture() {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
+			case 'q':
+				c.v.App.Stop()
+				return nil
+			}
+
+		}
+		return event
+	})
+
+	c.v.List.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyRune:
+			switch event.Rune() {
 			case 'u':
 				c.Debugf("u1 %s/%s\n", c.m.Bucket(), c.m.Prefix())
 				c.m.MoveUp()
 				c.Debugf("u2 %s/%s\n", c.m.Bucket(), c.m.Prefix())
 				c.updateList()
 				return nil
+			case 'd':
+				// fixme
+				i := c.v.List.GetCurrentItem()
+				cur, _ := c.v.List.GetItemText(i)
+				cur = strings.TrimSpace(cur)
+				c.Debugf("[%d] %s\n", i, cur)
+				c.Debugf("download by d %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), cur)
+				return nil
 			}
+
 		}
 		return event
 	})
@@ -78,7 +101,8 @@ func (c Controller) setInputCapture() {
 func (c Controller) updateList() {
 	c.v.List.Clear()
 
-	if c.bucket == "" {
+	c.Debugf(">> updateList bucket=%s\n", *c.bucket)
+	if *c.bucket == "" {
 		c.Debugf("select bucket\n")
 		buckets := c.m.AvailableBuckets()
 		c.Debugf("available buckets=%s\n", buckets)
@@ -90,7 +114,7 @@ func (c Controller) updateList() {
 			c.v.List.AddItem(" "+bucket, "", 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 
-				c.bucket = bucket
+				*c.bucket = bucket
 				c.m.SetBucket(bucket)
 				c.updateList()
 			})
@@ -121,7 +145,8 @@ func (c Controller) updateList() {
 			c.v.List.AddItem(" "+object, "", 0, func() {
 				c.Debugf("select object=%s\n", object)
 
-				c.Debugf("download?\n") // fixme
+				// fixme
+				c.Debugf("download object %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), object)
 			})
 		}
 
