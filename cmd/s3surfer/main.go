@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"runtime"
+
+	"github.com/alecthomas/kong"
 
 	"github.com/hirose31/s3surfer/pkg/c"
 )
@@ -26,10 +27,11 @@ func (b buildInfo) String() string {
 	)
 }
 
-var ()
+type CLI struct {
+	Debug   string           `help:"write debug log info file" short:"d" type:"path"`
+	Version kong.VersionFlag `help:"print version information and exit"`
 
-func init() {
-	//
+	Bucket string `help:"S3 bucket name" short:"b" optional`
 }
 
 func main() {
@@ -38,9 +40,21 @@ func main() {
 		Revision: revision,
 	}
 
-	fmt.Println(buildInfo.String())
+	cli := CLI{}
 
-	c.Blah()
+	ctx := kong.Parse(&cli,
+		kong.Name("s3surfer"),
+		kong.Description("s3surfer is CLI tool for browsing S3 bucket and download objects."),
+		kong.UsageOnError(),
+		kong.Vars{
+			"version": buildInfo.String(),
+		},
+	)
 
-	os.Exit(1)
+	err := c.NewController(
+		cli.Bucket,
+		cli.Debug,
+	).Run()
+
+	ctx.FatalIfErrorf(err)
 }
