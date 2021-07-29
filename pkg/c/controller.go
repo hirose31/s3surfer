@@ -13,7 +13,7 @@ type Controller struct {
 	bucket string
 	dfp    *os.File
 	v      v.View
-	m      m.S3Model
+	m      *m.S3Model
 }
 
 func NewController(

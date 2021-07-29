@@ -25,7 +25,7 @@ type ObjectCache struct {
 	objects  []string
 }
 
-func NewS3Model() S3Model {
+func NewS3Model() *S3Model {
 	s3m := S3Model{}
 
 	// client
@@ -45,7 +45,7 @@ func NewS3Model() S3Model {
 	// cache
 	s3m.cache = map[string]*ObjectCache{}
 
-	return s3m
+	return &s3m
 }
 
 func (s3m S3Model) Bucket() string {
