@@ -11,10 +11,9 @@ import (
 )
 
 type Controller struct {
-	bucket *string
-	dfp    *os.File
-	v      v.View
-	m      *m.S3Model
+	dfp *os.File
+	v   v.View
+	m   *m.S3Model
 }
 
 func NewController(
@@ -30,11 +29,15 @@ func NewController(
 		}
 	}
 
+	m := m.NewS3Model()
+	if bucket != "" {
+		m.SetBucket(bucket)
+	}
+
 	c := Controller{
-		&bucket,
 		dfp,
 		v.NewView(),
-		m.NewS3Model(),
+		m,
 	}
 
 	return c
@@ -46,10 +49,10 @@ func (c Controller) Debugf(format string, args ...interface{}) {
 
 func (c Controller) Run() error {
 	c.Debugf(">> Run\n")
-	c.Debugf("  bucket=%s\n", *c.bucket)
+	c.Debugf("  bucket=%s\n", c.m.Bucket())
 
-	if *c.bucket != "" {
-		c.m.SetBucket(*c.bucket)
+	if c.m.Bucket() != "" {
+		c.m.SetBucket(c.m.Bucket())
 	}
 
 	c.updateList()
@@ -98,8 +101,8 @@ func (c Controller) setInputCapture() {
 func (c Controller) updateList() {
 	c.v.List.Clear()
 
-	c.Debugf(">> updateList bucket=%s\n", *c.bucket)
-	if *c.bucket == "" {
+	c.Debugf(">> updateList bucket=%s\n", c.m.Bucket())
+	if c.m.Bucket() == "" {
 		c.Debugf("select bucket\n")
 		buckets := c.m.AvailableBuckets()
 		c.Debugf("available buckets=%s\n", buckets)
@@ -111,7 +114,6 @@ func (c Controller) updateList() {
 			c.v.List.AddItem(" "+bucket, "", 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 
-				*c.bucket = bucket
 				c.m.SetBucket(bucket)
 				c.updateList()
 			})
