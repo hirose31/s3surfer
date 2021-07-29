@@ -78,10 +78,7 @@ func (c Controller) setInputCapture() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'u':
-				c.Debugf("u1 %s/%s\n", c.m.Bucket(), c.m.Prefix())
-				c.m.MoveUp()
-				c.Debugf("u2 %s/%s\n", c.m.Bucket(), c.m.Prefix())
-				c.updateList()
+				c.moveUp()
 				return nil
 			case 'd':
 				// fixme
@@ -134,9 +131,7 @@ func (c Controller) updateList() {
 			prefix := _prefix
 			c.v.List.AddItem(" "+prefix, "", 0, func() {
 				c.Debugf("select prefix=%s\n", prefix)
-
-				c.m.MoveDown(prefix)
-				c.updateList()
+				c.moveDown(prefix)
 			})
 		}
 
@@ -151,4 +146,17 @@ func (c Controller) updateList() {
 		}
 
 	}
+}
+
+func (c Controller) moveUp() {
+	c.Debugf("u1 %s/%s\n", c.m.Bucket(), c.m.Prefix())
+	c.m.MoveUp()
+	c.Debugf("u2 %s/%s\n", c.m.Bucket(), c.m.Prefix())
+	c.updateList()
+}
+
+func (c Controller) moveDown(prefix string) {
+	c.m.MoveDown(prefix)
+	c.updateList()
+
 }
