@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	s3manager "github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 // S3Model ...
@@ -17,12 +21,13 @@ type S3Model struct {
 	availableBuckets []string
 	prefix           string
 	client           *s3.Client
+	downloader       *s3manager.Downloader
 	cache            map[string]*ObjectCache
 }
 
 type ObjectCache struct {
 	prefixes []string
-	objects  []string
+	keys     []string
 }
 
 func NewS3Model() *S3Model {
@@ -35,6 +40,7 @@ func NewS3Model() *S3Model {
 	}
 
 	s3m.client = s3.NewFromConfig(cfg)
+	s3m.downloader = s3manager.NewDownloader(s3m.client)
 
 	// avaiable buckets
 	output, err := s3m.client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
@@ -100,7 +106,7 @@ func (s3m *S3Model) MoveDown(prefix string) error {
 
 func (s3m S3Model) List() (
 	prefixes []string,
-	objects []string,
+	keys []string,
 	err error,
 ) {
 	if s3m.bucket == "" {
@@ -108,7 +114,7 @@ func (s3m S3Model) List() (
 	}
 
 	if cache, ok := s3m.cache[s3m.prefix]; ok {
-		return cache.prefixes, cache.objects, nil
+		return cache.prefixes, cache.keys, nil
 	}
 
 	input := &s3.ListObjectsV2Input{
@@ -128,36 +134,72 @@ func (s3m S3Model) List() (
 			prefixes = append(prefixes, lastPartPrefix(aws.ToString(prefix.Prefix)))
 		}
 		for _, object := range output.Contents {
-			objects = append(objects, lastPartPrefix(aws.ToString(object.Key)))
+			keys = append(keys, lastPartPrefix(aws.ToString(object.Key)))
 		}
 	}
 
 	s3m.cache[s3m.prefix] = &ObjectCache{
 		prefixes: prefixes,
-		objects:  objects,
+		keys:     keys,
 	}
 
-	return prefixes, objects, nil
+	return prefixes, keys, nil
 }
 
-/* fixme
-aws s3api list-objects-v2 --bucket cj-sandbox-sbdev-infra-log --prefix test/p2/
-で key のリストを得て、
-合算したり
-ダウンロード get-object したりする
+func (s3m S3Model) ListObjects(key string) []s3types.Object {
+	var objects []s3types.Object
 
-objects が空の場合は、現在のprefix以下の全オブジェクトをダウンロードする。
-
-*/
-func (s3m S3Model) Download(objects []string, confirm func() bool) bool {
-	fmt.Printf("prepare\n")
-
-	if !confirm() {
-		return false
+	targetPrefix := s3m.Prefix()
+	if key != "" {
+		targetPrefix += key
 	}
 
-	fmt.Printf("download!!\n")
-	return true
+	input := &s3.ListObjectsV2Input{
+		Bucket: aws.String(s3m.Bucket()),
+		Prefix: aws.String(targetPrefix),
+	}
+
+	paginator := s3.NewListObjectsV2Paginator(s3m.client, input)
+	for paginator.HasMorePages() {
+		output, err := paginator.NextPage(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+
+		for _, object := range output.Contents {
+			objects = append(objects, object)
+		}
+	}
+
+	return objects
+}
+
+func (s3m S3Model) Download(object s3types.Object) (n int64, err error) {
+	filePath := aws.ToString(object.Key)
+
+	if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+		return 0, err
+	}
+
+	_, err = os.Stat(filePath)
+	if err == nil {
+		return 0, fmt.Errorf("exists")
+	}
+
+	fp, err := os.Create(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer fp.Close()
+
+	return s3m.downloader.Download(
+		context.TODO(),
+		fp,
+		&s3.GetObjectInput{
+			Bucket: aws.String(s3m.Bucket()),
+			Key:    object.Key,
+		},
+	)
 }
 
 func upperPrefix(prefix string) string {

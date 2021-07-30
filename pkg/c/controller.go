@@ -5,9 +5,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/dustin/go-humanize"
 	"github.com/gdamore/tcell/v2"
 	"github.com/hirose31/s3surfer/pkg/m"
 	"github.com/hirose31/s3surfer/pkg/v"
+	"github.com/rivo/tview"
 )
 
 type Controller struct {
@@ -90,6 +93,7 @@ func (c Controller) setInputCapture() {
 				cur = strings.TrimSpace(cur)
 				c.Debugf("[%d] %s\n", i, cur)
 				c.Debugf("download by d %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), cur)
+				c.Download(cur)
 				return nil
 			}
 
@@ -123,11 +127,11 @@ func (c Controller) updateList() {
 
 		c.v.List.SetTitle("[ s3://" + c.m.Bucket() + "/" + c.m.Prefix() + " ]")
 
-		prefixes, objects, err := c.m.List()
+		prefixes, keys, err := c.m.List()
 		if err != nil {
 			panic(err)
 		}
-		c.Debugf("prefixes=%s objects=%s\n", prefixes, objects)
+		c.Debugf("prefixes=%s keys=%s\n", prefixes, keys)
 
 		for _, _prefix := range prefixes {
 			prefix := _prefix
@@ -137,13 +141,14 @@ func (c Controller) updateList() {
 			})
 		}
 
-		for _, _object := range objects {
-			object := _object
-			c.v.List.AddItem(" "+object, "", 0, func() {
-				c.Debugf("select object=%s\n", object)
+		for _, _key := range keys {
+			key := _key
+			c.v.List.AddItem(" "+key, "", 0, func() {
+				c.Debugf("select key=%s\n", key)
 
 				// fixme
-				c.Debugf("download object %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), object)
+				c.Debugf("download key %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), key)
+				c.Download(key)
 			})
 		}
 
@@ -161,4 +166,51 @@ func (c Controller) moveDown(prefix string) {
 	c.m.MoveDown(prefix)
 	c.updateList()
 
+}
+
+func (c Controller) Download(key string) {
+	c.Debugf("bucket=%s prefix=%s key=%s\n", c.m.Bucket(), c.m.Prefix(), key)
+
+	// fixme ファイルが存在するか
+
+	totalSize := int64(0)
+	existFilePath := []string{}
+	objects := c.m.ListObjects(key)
+	for _, object := range objects {
+		filePath := aws.ToString(object.Key)
+		c.Debugf("- %s\n", filePath)
+		if _, err := os.Stat(filePath); err == nil {
+			existFilePath = append(existFilePath, filePath)
+		}
+		totalSize += object.Size
+	}
+
+	if len(existFilePath) > 0 {
+		// fixme
+	}
+
+	// fixme check disk available
+
+	confirm := tview.NewModal().
+		SetText(fmt.Sprintf("Do you want to ownload?\n%d object(s)\ntotal size %s",
+			len(objects),
+			humanize.IBytes(uint64(totalSize)),
+		)).
+		AddButtons([]string{"OK", "Cancel"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			c.v.Pages.RemovePage("confirm").SwitchToPage("main")
+			if buttonLabel == "OK" {
+				//progress := tview.NewModal()
+
+				for _, object := range objects {
+					n, err := c.m.Download(object)
+					if err != nil {
+						panic(err)
+					}
+					n = n
+				}
+			}
+		})
+
+	c.v.Pages.AddAndSwitchToPage("confirm", confirm, true)
 }

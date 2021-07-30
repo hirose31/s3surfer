@@ -6,8 +6,9 @@ import (
 )
 
 type View struct {
-	App  *tview.Application
-	List *tview.List
+	App   *tview.Application
+	Pages *tview.Pages
+	List  *tview.List
 }
 
 func NewView() View {
@@ -32,6 +33,7 @@ func NewView() View {
 
 	v := View{
 		app,
+		pages,
 		list,
 	}
 
