@@ -107,7 +107,7 @@ func (c Controller) updateList() {
 		buckets := c.m.AvailableBuckets()
 		c.Debugf("available buckets=%s\n", buckets)
 
-		c.v.List.SetTitle("s3://")
+		c.v.List.SetTitle("[ s3:// ]")
 
 		for _, _bucket := range buckets {
 			bucket := _bucket
@@ -121,7 +121,7 @@ func (c Controller) updateList() {
 	} else {
 		c.Debugf("select prefix or object\n")
 
-		c.v.List.SetTitle("s3://" + c.m.Bucket() + "/" + c.m.Prefix())
+		c.v.List.SetTitle("[ s3://" + c.m.Bucket() + "/" + c.m.Prefix() + " ]")
 
 		prefixes, objects, err := c.m.List()
 		if err != nil {

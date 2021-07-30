@@ -15,7 +15,8 @@ func NewView() View {
 
 	list := tview.NewList().
 		ShowSecondaryText(false)
-	list.SetBorder(true)
+	list.SetBorder(true).
+		SetTitleAlign(tview.AlignLeft)
 
 	main := tview.NewFlex().
 		AddItem(list, 0, 1, true)
