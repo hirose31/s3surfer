@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"runtime"
+	"syscall"
 
 	"github.com/alecthomas/kong"
 
@@ -32,6 +34,17 @@ type CLI struct {
 	Version kong.VersionFlag `help:"print version information and exit"`
 
 	Bucket string `help:"S3 bucket name" short:"b" optional`
+}
+
+func init() {
+	// https://github.com/rivo/tview/wiki/FAQ#why-do-my-borders-look-weird
+	if os.Getenv("LC_CTYPE") != "en_US.UTF-8" {
+		os.Setenv("LC_CTYPE", "en_US.UTF-8")
+		env := os.Environ()
+		if err := syscall.Exec(os.Args[0], os.Args, env); err != nil {
+			panic(err)
+		}
+	}
 }
 
 func main() {
