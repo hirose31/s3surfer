@@ -115,7 +115,7 @@ func (c Controller) updateList() {
 
 		for _, _bucket := range buckets {
 			bucket := _bucket
-			c.v.List.AddItem(" "+bucket, "", 0, func() {
+			c.v.List.AddItem(bucket, "", 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 
 				c.m.SetBucket(bucket)
@@ -135,7 +135,7 @@ func (c Controller) updateList() {
 
 		for _, _prefix := range prefixes {
 			prefix := _prefix
-			c.v.List.AddItem(" "+prefix, "", 0, func() {
+			c.v.List.AddItem(prefix, "", 0, func() {
 				c.Debugf("select prefix=%s\n", prefix)
 				c.moveDown(prefix)
 			})
@@ -143,7 +143,7 @@ func (c Controller) updateList() {
 
 		for _, _key := range keys {
 			key := _key
-			c.v.List.AddItem(" "+key, "", 0, func() {
+			c.v.List.AddItem(key, "", 0, func() {
 				c.Debugf("select key=%s\n", key)
 
 				// fixme
