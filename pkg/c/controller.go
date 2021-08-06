@@ -83,9 +83,15 @@ func (c Controller) setInputCapture() {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
-			case 'u':
+			case 'u', 'h':
 				c.moveUp()
 				return nil
+			case 'j':
+				return tcell.NewEventKey(tcell.KeyDown, 0, tcell.ModNone)
+			case 'k':
+				return tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone)
+			case 'l':
+				return tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone)
 			case 'd':
 				// fixme
 				i := c.v.List.GetCurrentItem()
@@ -213,6 +219,7 @@ func (c Controller) Download(key string) {
 					title := "Downloading"
 
 					for i, object := range objects {
+						c.Debugf("download %s\n", aws.ToString(object.Key))
 						n, err := c.m.Download(object)
 
 						if err != nil {
