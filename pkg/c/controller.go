@@ -191,24 +191,55 @@ func (c Controller) Download(key string) {
 
 	// fixme check disk available
 
+	nobjects := len(objects)
+
+	progress := tview.NewModal().
+		SetText("Downloading\n\n").
+		AddButtons([]string{"Done"})
+
 	confirm := tview.NewModal().
-		SetText(fmt.Sprintf("Do you want to ownload?\n%d object(s)\ntotal size %s",
-			len(objects),
+		SetText(fmt.Sprintf("Do you want to download?\n%d object(s)\ntotal size %s",
+			nobjects,
 			humanize.IBytes(uint64(totalSize)),
 		)).
 		AddButtons([]string{"OK", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 			c.v.Pages.RemovePage("confirm").SwitchToPage("main")
 			if buttonLabel == "OK" {
-				//progress := tview.NewModal()
+				c.v.Pages.AddAndSwitchToPage("progress", progress, true)
 
-				for _, object := range objects {
-					n, err := c.m.Download(object)
-					if err != nil {
-						panic(err)
+				go func() {
+					downloadedSize := int64(0)
+					title := "Downloading"
+
+					for i, object := range objects {
+						n, err := c.m.Download(object)
+
+						if err != nil {
+							panic(err)
+						}
+
+						downloadedSize += n
+
+						if i+1 == nobjects {
+							title = "Downloaded"
+						}
+
+						c.v.App.QueueUpdateDraw(func() {
+							progress.SetText(fmt.Sprintf("%s\n%d/%d objects\n%s/%s",
+								title,
+								i+1,
+								nobjects,
+								humanize.IBytes(uint64(downloadedSize)),
+								humanize.IBytes(uint64(totalSize)),
+							))
+						})
 					}
-					n = n
-				}
+
+					progress.SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+						c.v.Pages.RemovePage("progress").SwitchToPage("main")
+					})
+				}()
 			}
 		})
 
