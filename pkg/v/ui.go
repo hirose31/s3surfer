@@ -7,6 +7,7 @@ import (
 
 type View struct {
 	App   *tview.Application
+	Frame *tview.Frame
 	Pages *tview.Pages
 	List  *tview.List
 }
@@ -26,13 +27,14 @@ func NewView() View {
 		AddPage("main", main, true, true)
 
 	frame := tview.NewFrame(pages)
-	frame.AddText("Header left", true, tview.AlignLeft, tcell.ColorWhite)
-	frame.AddText("Footer center", false, tview.AlignCenter, tcell.ColorWhite)
+	// fixme
+	frame.AddText("[::b][↓↑/jk][::-] Down,Up [::b][d[][::-] \nDownload [::b][q[][::-] Quit", false, tview.AlignCenter, tcell.ColorWhite)
 
 	app.SetRoot(frame, true)
 
 	v := View{
 		app,
+		frame,
 		pages,
 		list,
 	}

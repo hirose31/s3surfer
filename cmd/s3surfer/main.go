@@ -67,6 +67,7 @@ func main() {
 	err := c.NewController(
 		cli.Bucket,
 		cli.Debug,
+		buildInfo.String(),
 	).Run()
 
 	ctx.FatalIfErrorf(err)

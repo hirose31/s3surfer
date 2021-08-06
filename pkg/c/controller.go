@@ -22,6 +22,7 @@ type Controller struct {
 func NewController(
 	bucket string,
 	debug string,
+	version string,
 ) Controller {
 
 	var dfp *os.File
@@ -37,9 +38,12 @@ func NewController(
 		m.SetBucket(bucket)
 	}
 
+	v := v.NewView()
+	v.Frame.AddText(version, true, tview.AlignCenter, tcell.ColorWhite)
+
 	c := Controller{
 		dfp,
-		v.NewView(),
+		v,
 		m,
 	}
 
