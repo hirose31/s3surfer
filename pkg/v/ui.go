@@ -27,8 +27,7 @@ func NewView() View {
 		AddPage("main", main, true, true)
 
 	frame := tview.NewFrame(pages)
-	// fixme
-	frame.AddText("[::b][↓↑/jk][::-] Down,Up [::b][d[][::-] \nDownload [::b][q[][::-] Quit", false, tview.AlignCenter, tcell.ColorWhite)
+	frame.AddText("[::b][↓,j/↑,k][::-] Down/Up [::b][Enter,l/u,h][::-] Lower/Upper [::b][d[][::-] Download [::b][q[][::-] Quit", false, tview.AlignCenter, tcell.ColorWhite)
 
 	app.SetRoot(frame, true)
 
