@@ -57,7 +57,7 @@ func main() {
 
 	ctx := kong.Parse(&cli,
 		kong.Name("s3surfer"),
-		kong.Description("s3surfer is CLI tool for browsing S3 bucket and download objects."),
+		kong.Description("s3surfer is CLI tool for browsing S3 bucket and download objects.\nhttps://github.com/hirose31/s3surfer"),
 		kong.UsageOnError(),
 		kong.Vars{
 			"version": buildInfo.String(),
