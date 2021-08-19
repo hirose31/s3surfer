@@ -44,6 +44,9 @@ func NewS3Model() *S3Model {
 
 	// avaiable buckets
 	output, err := s3m.client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	for _, bucket := range output.Buckets {
 		s3m.availableBuckets = append(s3m.availableBuckets, aws.ToString(bucket.Name))
 	}
