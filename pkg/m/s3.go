@@ -47,8 +47,13 @@ func NewS3Model() *S3Model {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	for _, bucket := range output.Buckets {
 		s3m.availableBuckets = append(s3m.availableBuckets, aws.ToString(bucket.Name))
+	}
+
+	if len(s3m.AvailableBuckets()) == 0 {
+		log.Fatal("no available S3 buckets")
 	}
 
 	// cache
