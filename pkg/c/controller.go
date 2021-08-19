@@ -69,13 +69,17 @@ func (c Controller) Run() error {
 	return c.v.App.Run()
 }
 
+func (c Controller) Stop() {
+	c.v.App.Stop()
+}
+
 func (c Controller) setInputCapture() {
 	c.v.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'q':
-				c.v.App.Stop()
+				c.Stop()
 				return nil
 			}
 
@@ -97,7 +101,6 @@ func (c Controller) setInputCapture() {
 			case 'l':
 				return tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone)
 			case 'd':
-				// fixme
 				i := c.v.List.GetCurrentItem()
 				cur, _ := c.v.List.GetItemText(i)
 				cur = strings.TrimSpace(cur)
@@ -155,8 +158,6 @@ func (c Controller) updateList() {
 			key := _key
 			c.v.List.AddItem(key, "", 0, func() {
 				c.Debugf("select key=%s\n", key)
-
-				// fixme
 				c.Debugf("download key %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), key)
 				c.Download(key)
 			})
@@ -181,8 +182,6 @@ func (c Controller) moveDown(prefix string) {
 func (c Controller) Download(key string) {
 	c.Debugf("bucket=%s prefix=%s key=%s\n", c.m.Bucket(), c.m.Prefix(), key)
 
-	// fixme ファイルが存在するか
-
 	totalSize := int64(0)
 	existFilePath := []string{}
 	objects := c.m.ListObjects(key)
@@ -195,8 +194,9 @@ func (c Controller) Download(key string) {
 		totalSize += object.Size
 	}
 
+	// don't overwrite local files
 	if len(existFilePath) > 0 {
-		// fixme
+		panic(fmt.Sprintf("\n[ABORT] following files are exists:\n%s\n", strings.Join(existFilePath, "\n")))
 	}
 
 	// fixme check disk available
