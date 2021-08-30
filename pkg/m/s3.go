@@ -3,7 +3,6 @@ package m
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +35,7 @@ func NewS3Model() *S3Model {
 	// client
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	s3m.client = s3.NewFromConfig(cfg)
@@ -45,7 +44,7 @@ func NewS3Model() *S3Model {
 	// avaiable buckets
 	output, err := s3m.client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	for _, bucket := range output.Buckets {
@@ -53,7 +52,7 @@ func NewS3Model() *S3Model {
 	}
 
 	if len(s3m.AvailableBuckets()) == 0 {
-		log.Fatal("no available S3 buckets")
+		panic("no available S3 buckets")
 	}
 
 	// cache
