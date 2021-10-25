@@ -247,7 +247,11 @@ func (s3m S3Model) Download(object s3types.Object) (n int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	defer fp.Close()
+	defer func() {
+		if err := fp.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	return s3m.downloader.Download(
 		context.TODO(),

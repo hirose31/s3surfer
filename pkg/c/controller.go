@@ -3,6 +3,7 @@ package c
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -31,14 +32,17 @@ func NewController(
 	var dfp *os.File
 	if debug != "" {
 		var err error
-		if dfp, err = os.OpenFile(debug, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644); err != nil {
+		if dfp, err = os.OpenFile(filepath.Clean(debug), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600); err != nil {
 			panic(err)
 		}
 	}
 
 	m := m.NewS3Model()
 	if bucket != "" {
-		m.SetBucket(bucket)
+		err := m.SetBucket(bucket)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	v := v.NewView()
@@ -64,7 +68,10 @@ func (c Controller) Run() error {
 	c.Debugf("  bucket=%s\n", c.m.Bucket())
 
 	if c.m.Bucket() != "" {
-		c.m.SetBucket(c.m.Bucket())
+		err := c.m.SetBucket(c.m.Bucket())
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	c.updateList()
@@ -137,7 +144,10 @@ func (c Controller) updateList() {
 			c.v.List.AddItem("[::b]s3://"+bucket+"[::-]", bucket, 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 
-				c.m.SetBucket(bucket)
+				err := c.m.SetBucket(bucket)
+				if err != nil {
+					panic(err)
+				}
 				c.updateList()
 			})
 		}
@@ -174,13 +184,19 @@ func (c Controller) updateList() {
 
 func (c Controller) moveUp() {
 	c.Debugf("u1 %s/%s\n", c.m.Bucket(), c.m.Prefix())
-	c.m.MoveUp()
+	err := c.m.MoveUp()
+	if err != nil {
+		panic(err)
+	}
 	c.Debugf("u2 %s/%s\n", c.m.Bucket(), c.m.Prefix())
 	c.updateList()
 }
 
 func (c Controller) moveDown(prefix string) {
-	c.m.MoveDown(prefix)
+	err := c.m.MoveDown(prefix)
+	if err != nil {
+		panic(err)
+	}
 	c.updateList()
 
 }
