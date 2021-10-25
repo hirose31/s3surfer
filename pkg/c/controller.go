@@ -127,7 +127,7 @@ func (c Controller) updateList() {
 		c.v.List.SetTitle("[ [::b]s3://[::-] ]")
 
 		for _, _bucket := range buckets {
-			bucket := _bucket
+			bucket := _bucket.Name
 			c.v.List.AddItem("[::b]s3://"+bucket+"[::-]", "", 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 

@@ -14,10 +14,15 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
+type S3Bucket struct {
+	Name   string
+	Region string
+}
+
 // S3Model ...
 type S3Model struct {
 	bucket           string
-	availableBuckets []string
+	availableBuckets []S3Bucket
 	prefix           string
 	client           *s3.Client
 	downloader       *s3manager.Downloader
@@ -33,13 +38,12 @@ func NewS3Model() *S3Model {
 	s3m := S3Model{}
 
 	// client
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
 	if err != nil {
 		panic(err)
 	}
 
 	s3m.client = s3.NewFromConfig(cfg)
-	s3m.downloader = s3manager.NewDownloader(s3m.client)
 
 	// avaiable buckets
 	output, err := s3m.client.ListBuckets(context.TODO(), &s3.ListBucketsInput{})
@@ -48,7 +52,34 @@ func NewS3Model() *S3Model {
 	}
 
 	for _, bucket := range output.Buckets {
-		s3m.availableBuckets = append(s3m.availableBuckets, aws.ToString(bucket.Name))
+		bl, err := s3m.client.GetBucketLocation(
+			context.TODO(),
+			&s3.GetBucketLocationInput{
+				Bucket: bucket.Name,
+			},
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		// NormalizeBucketLocation in aws-sd-go v1
+		// Replaces empty string with "us-east-1", and "EU" with "eu-west-1".
+		//
+		// See http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketGETlocation.html
+		// for more information on the values that can be returned.
+		region := string(bl.LocationConstraint)
+		switch region {
+		case "":
+			region = "us-east-1"
+		case "EU":
+			region = "eu-west-1"
+		}
+		s3m.availableBuckets = append(s3m.availableBuckets,
+			S3Bucket{
+				Name:   aws.ToString(bucket.Name),
+				Region: region,
+			},
+		)
 	}
 
 	if len(s3m.AvailableBuckets()) == 0 {
@@ -70,23 +101,30 @@ func (s3m *S3Model) SetBucket(bucket string) error {
 		return fmt.Errorf("bucket is already set: %s", s3m.bucket)
 	}
 
-	found := false
-	for _, ab := range s3m.availableBuckets {
-		if ab == bucket {
-			found = true
-			break
+	for _, ab := range s3m.AvailableBuckets() {
+		if ab.Name != bucket {
+			continue
 		}
-	}
-	if !found {
-		return fmt.Errorf("not found in available buckets: %s", bucket)
 
+		// found
+		s3m.bucket = bucket
+
+		// re-create client with region
+		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ab.Region))
+		if err != nil {
+			panic(err)
+		}
+
+		s3m.client = s3.NewFromConfig(cfg)
+		s3m.downloader = s3manager.NewDownloader(s3m.client)
+
+		return nil
 	}
 
-	s3m.bucket = bucket
-	return nil
+	return fmt.Errorf("not found in available buckets: %s", bucket)
 }
 
-func (s3m S3Model) AvailableBuckets() []string {
+func (s3m S3Model) AvailableBuckets() []S3Bucket {
 	return s3m.availableBuckets
 }
 
