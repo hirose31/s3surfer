@@ -30,6 +30,7 @@ func (b buildInfo) String() string {
 	)
 }
 
+// CLI ...
 type CLI struct {
 	Debug   string           `help:"write debug log info file" short:"d" type:"path"`
 	Version kong.VersionFlag `help:"print version information and exit"`

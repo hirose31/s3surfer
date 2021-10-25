@@ -14,12 +14,14 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 )
 
+// Controller ...
 type Controller struct {
 	dfp *os.File
 	v   v.View
 	m   *m.S3Model
 }
 
+// NewController ...
 func NewController(
 	bucket string,
 	debug string,
@@ -51,10 +53,12 @@ func NewController(
 	return c
 }
 
+// Debugf ...
 func (c Controller) Debugf(format string, args ...interface{}) {
 	fmt.Fprintf(c.dfp, format, args...)
 }
 
+// Run ...
 func (c Controller) Run() error {
 	c.Debugf(">> Run\n")
 	c.Debugf("  bucket=%s\n", c.m.Bucket())
@@ -70,6 +74,7 @@ func (c Controller) Run() error {
 	return c.v.App.Run()
 }
 
+// Stop ...
 func (c Controller) Stop() {
 	c.v.App.Stop()
 }
@@ -180,6 +185,7 @@ func (c Controller) moveDown(prefix string) {
 
 }
 
+// Download ...
 func (c Controller) Download(key string) {
 	c.Debugf("bucket=%s prefix=%s key=%s\n", c.m.Bucket(), c.m.Prefix(), key)
 

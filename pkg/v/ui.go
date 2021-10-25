@@ -5,6 +5,7 @@ import (
 	"github.com/rivo/tview"
 )
 
+// View ...
 type View struct {
 	App   *tview.Application
 	Frame *tview.Frame
@@ -12,6 +13,7 @@ type View struct {
 	List  *tview.List
 }
 
+// NewView ...
 func NewView() View {
 	app := tview.NewApplication()
 

@@ -14,6 +14,7 @@ import (
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
+// S3Bucket ...
 type S3Bucket struct {
 	Name   string
 	Region string
@@ -29,11 +30,13 @@ type S3Model struct {
 	cache            map[string]*ObjectCache
 }
 
+// ObjectCache ...
 type ObjectCache struct {
 	prefixes []string
 	keys     []string
 }
 
+// NewS3Model ...
 func NewS3Model() *S3Model {
 	s3m := S3Model{}
 
@@ -92,10 +95,12 @@ func NewS3Model() *S3Model {
 	return &s3m
 }
 
+// Bucket ...
 func (s3m S3Model) Bucket() string {
 	return s3m.bucket
 }
 
+// SetBucket ...
 func (s3m *S3Model) SetBucket(bucket string) error {
 	if s3m.bucket != "" {
 		return fmt.Errorf("bucket is already set: %s", s3m.bucket)
@@ -124,10 +129,12 @@ func (s3m *S3Model) SetBucket(bucket string) error {
 	return fmt.Errorf("not found in available buckets: %s", bucket)
 }
 
+// AvailableBuckets ...
 func (s3m S3Model) AvailableBuckets() []S3Bucket {
 	return s3m.availableBuckets
 }
 
+// Prefix ...
 func (s3m S3Model) Prefix() string {
 	return s3m.prefix
 }
@@ -141,14 +148,17 @@ func (s3m *S3Model) setPrefix(prefix string) error {
 	return nil
 }
 
+// MoveUp ...
 func (s3m *S3Model) MoveUp() error {
 	return s3m.setPrefix(upperPrefix((s3m.prefix)))
 }
 
+// MoveDown ...
 func (s3m *S3Model) MoveDown(prefix string) error {
 	return s3m.setPrefix(s3m.prefix + prefix)
 }
 
+// List ...
 func (s3m S3Model) List() (
 	prefixes []string,
 	keys []string,
@@ -191,6 +201,7 @@ func (s3m S3Model) List() (
 	return prefixes, keys, nil
 }
 
+// ListObjects ...
 func (s3m S3Model) ListObjects(key string) []s3types.Object {
 	var objects []s3types.Object
 
@@ -219,6 +230,7 @@ func (s3m S3Model) ListObjects(key string) []s3types.Object {
 	return objects
 }
 
+// Download ...
 func (s3m S3Model) Download(object s3types.Object) (n int64, err error) {
 	filePath := aws.ToString(object.Key)
 
