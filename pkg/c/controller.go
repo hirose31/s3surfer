@@ -11,6 +11,7 @@ import (
 	"github.com/hirose31/s3surfer/pkg/m"
 	"github.com/hirose31/s3surfer/pkg/v"
 	"github.com/rivo/tview"
+	"github.com/shirou/gopsutil/v3/disk"
 )
 
 type Controller struct {
@@ -199,7 +200,20 @@ func (c Controller) Download(key string) {
 		panic(fmt.Sprintf("\n[ABORT] following files are exists:\n%s\n", strings.Join(existFilePath, "\n")))
 	}
 
-	// fixme check disk available
+	// check disk available
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	usage, err := disk.Usage(cwd)
+	if err != nil {
+		panic(err)
+	}
+	freeThreshold := int64(float64(usage.Free) * 0.8)
+	c.Debugf("check disk free: totalSize=%d usage.Free=%d threshold=%d\n", totalSize, usage.Free, freeThreshold)
+	if totalSize > freeThreshold {
+		panic(fmt.Sprintf("[ABORT] there is not enough free space: download size=%d free=%d free threshold=%d", totalSize, usage.Free, freeThreshold))
+	}
 
 	nobjects := len(objects)
 
