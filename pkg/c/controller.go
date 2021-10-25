@@ -103,7 +103,7 @@ func (c Controller) setInputCapture() {
 				return tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone)
 			case 'd':
 				i := c.v.List.GetCurrentItem()
-				cur, _ := c.v.List.GetItemText(i)
+				_, cur := c.v.List.GetItemText(i)
 				cur = strings.TrimSpace(cur)
 				c.Debugf("[%d] %s\n", i, cur)
 				c.Debugf("download by d %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), cur)
@@ -129,7 +129,7 @@ func (c Controller) updateList() {
 
 		for _, _bucket := range buckets {
 			bucket := _bucket.Name
-			c.v.List.AddItem("[::b]s3://"+bucket+"[::-]", "", 0, func() {
+			c.v.List.AddItem("[::b]s3://"+bucket+"[::-]", bucket, 0, func() {
 				c.Debugf("select bucket=%s\n", bucket)
 
 				c.m.SetBucket(bucket)
@@ -149,7 +149,7 @@ func (c Controller) updateList() {
 
 		for _, _prefix := range prefixes {
 			prefix := _prefix
-			c.v.List.AddItem("[::b]"+prefix+"[::-]", "", 0, func() {
+			c.v.List.AddItem("[::b]"+prefix+"[::-]", prefix, 0, func() {
 				c.Debugf("select prefix=%s\n", prefix)
 				c.moveDown(prefix)
 			})
@@ -157,7 +157,7 @@ func (c Controller) updateList() {
 
 		for _, _key := range keys {
 			key := _key
-			c.v.List.AddItem(key, "", 0, func() {
+			c.v.List.AddItem(key, key, 0, func() {
 				c.Debugf("select key=%s\n", key)
 				c.Debugf("download key %s/%s%s\n", c.m.Bucket(), c.m.Prefix(), key)
 				c.Download(key)
