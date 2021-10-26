@@ -37,7 +37,7 @@ func NewController(
 		}
 	}
 
-	fmt.Printf("fetch availble buckets...\n")
+	fmt.Printf("fetch available buckets...\n")
 	m := m.NewS3Model()
 	if bucket != "" {
 		err := m.SetBucket(bucket)
