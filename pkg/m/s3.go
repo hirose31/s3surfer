@@ -247,6 +247,7 @@ func (s3m S3Model) Download(object s3types.Object) (n int64, err error) {
 	if err != nil {
 		return 0, err
 	}
+	/* #nosec G307 */
 	defer func() {
 		if err := fp.Close(); err != nil {
 			panic(err)
