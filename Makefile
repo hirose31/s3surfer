@@ -37,7 +37,7 @@ $(GOBIN)/golint:
 	@cd && go get golang.org/x/lint/golint
 
 $(GOBIN)/gosec:
-	@cd && go get github.com/securego/gosec/v2/cmd/gosec@v2.8.1
+	@cd && go get github.com/securego/gosec/v2/cmd/gosec
 
 .PHONY: cross
 cross: $(GOBIN)/goxz ## build for cross platforms
