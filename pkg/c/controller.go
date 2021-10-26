@@ -67,13 +67,6 @@ func (c Controller) Run() error {
 	c.Debugf(">> Run\n")
 	c.Debugf("  bucket=%s\n", c.m.Bucket())
 
-	if c.m.Bucket() != "" {
-		err := c.m.SetBucket(c.m.Bucket())
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	c.updateList()
 
 	c.setInputCapture()
