@@ -41,7 +41,11 @@ func NewS3Model() *S3Model {
 	s3m := S3Model{}
 
 	// client
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+	region := "us-east-1"
+	if strings.HasPrefix(os.Getenv("LANG"), "ja") {
+		region = "ap-northeast-1"
+	}
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 	if err != nil {
 		panic(err)
 	}
