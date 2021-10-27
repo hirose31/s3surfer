@@ -33,7 +33,7 @@ Just download the appropriate version of [executable from latest release](https:
 | `↑`, `k` | Select previous item |
 | `Enter`, `l` | Move into directory |
 | `u`, `h` | Move parent directory |
-| `d` | Download selected file or directory |
+| `d` | Download the selected file or directory into the current working directory |
 | `q` | Quit |
 
 ## Environmental Variables
@@ -59,4 +59,4 @@ $ env AWS_PROFILE='my-profile' s3surfer
 # Note
 
 - Set ambiguous characters to single-width in your terminal setting.
-
+- If the total download size is greater than 80% of the available size of the destination partition, the download will not start.
