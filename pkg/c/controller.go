@@ -199,14 +199,34 @@ func (c Controller) moveDown(prefix string) {
 func (c Controller) Download(key string) {
 	c.Debugf("bucket=%s prefix=%s key=%s\n", c.m.Bucket(), c.m.Prefix(), key)
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	cwd = cwd + "/"
+
 	totalSize := int64(0)
 	existFilePath := []string{}
 	objects := c.m.ListObjects(key)
+	destPathMap := map[string]string{}
 	for _, object := range objects {
-		filePath := aws.ToString(object.Key)
-		c.Debugf("- %s\n", filePath)
-		if _, err := os.Stat(filePath); err == nil {
-			existFilePath = append(existFilePath, filePath)
+		key := aws.ToString(object.Key)
+		// download into under current directory
+		destPath, err := filepath.Abs("./" + key)
+		if err != nil {
+			panic(err)
+		}
+
+		// just to be safe
+		if !strings.HasPrefix(destPath, cwd) {
+			panic(fmt.Sprintf("destPath is not under current directory: destPath=%s cwd=%s", destPath, cwd))
+		}
+
+		destPathMap[key] = destPath
+
+		c.Debugf("- %s %s\n", key, destPath)
+		if _, err := os.Stat(destPath); err == nil {
+			existFilePath = append(existFilePath, destPath)
 		}
 		totalSize += object.Size
 	}
@@ -217,10 +237,6 @@ func (c Controller) Download(key string) {
 	}
 
 	// check disk available
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
 	usage, err := disk.Usage(cwd)
 	if err != nil {
 		panic(err)
@@ -253,8 +269,9 @@ func (c Controller) Download(key string) {
 					title := "Downloading"
 
 					for i, object := range objects {
-						c.Debugf("download %s\n", aws.ToString(object.Key))
-						n, err := c.m.Download(object)
+						key := aws.ToString(object.Key)
+						c.Debugf("download %s\n", key)
+						n, err := c.m.Download(object, destPathMap[key])
 
 						if err != nil {
 							panic(err)

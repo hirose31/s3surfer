@@ -235,19 +235,17 @@ func (s3m S3Model) ListObjects(key string) []s3types.Object {
 }
 
 // Download ...
-func (s3m S3Model) Download(object s3types.Object) (n int64, err error) {
-	filePath := aws.ToString(object.Key)
-
-	if err = os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
+func (s3m S3Model) Download(object s3types.Object, destPath string) (n int64, err error) {
+	if err = os.MkdirAll(filepath.Dir(destPath), 0700); err != nil {
 		return 0, err
 	}
 
-	_, err = os.Stat(filePath)
+	_, err = os.Stat(destPath)
 	if err == nil {
 		return 0, fmt.Errorf("exists")
 	}
 
-	fp, err := os.Create(filePath)
+	fp, err := os.Create(destPath)
 	if err != nil {
 		return 0, err
 	}
