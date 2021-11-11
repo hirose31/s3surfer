@@ -60,3 +60,4 @@ $ env AWS_PROFILE='my-profile' s3surfer
 
 - Set ambiguous characters to single-width in your terminal setting.
 - If the total download size is greater than 80% of the available size of the destination partition, the download will not start.
+- "Overwrite protection" protect the data in the same file name.
