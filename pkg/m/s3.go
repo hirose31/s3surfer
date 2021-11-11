@@ -226,9 +226,7 @@ func (s3m S3Model) ListObjects(key string) []s3types.Object {
 			panic(err)
 		}
 
-		for _, object := range output.Contents {
-			objects = append(objects, object)
-		}
+		objects = append(objects, output.Contents...)
 	}
 
 	return objects
