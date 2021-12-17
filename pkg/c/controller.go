@@ -26,6 +26,8 @@ type Controller struct {
 func NewController(
 	bucket string,
 	endpoint string,
+	region string,
+	pathStyle bool,
 	debug string,
 	version string,
 ) Controller {
@@ -39,7 +41,7 @@ func NewController(
 	}
 
 	fmt.Printf("fetch available buckets...\n")
-	m := m.NewS3Model(endpoint)
+	m := m.NewS3Model(endpoint, region, pathStyle)
 	if bucket != "" {
 		err := m.SetBucket(bucket)
 		if err != nil {
@@ -204,7 +206,7 @@ func (c Controller) Download(key string) {
 	if err != nil {
 		panic(err)
 	}
-	cwd = cwd + "/"
+	cwd = cwd + fmt.Sprintf("%c", filepath.Separator)
 
 	totalSize := int64(0)
 	existFilePath := []string{}
@@ -217,6 +219,7 @@ func (c Controller) Download(key string) {
 		if err != nil {
 			panic(err)
 		}
+		destPath = filepath.Clean(destPath)
 
 		// just to be safe
 		if !strings.HasPrefix(destPath, cwd) {

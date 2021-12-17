@@ -40,13 +40,15 @@ type ObjectCache struct {
 }
 
 // NewS3Model ...
-func NewS3Model(endpointURL string) *S3Model {
+func NewS3Model(endpointURL string, region string, pathStyle bool) *S3Model {
 	s3m := S3Model{}
 
 	// client
-	region := "us-east-1"
-	if strings.HasPrefix(os.Getenv("LANG"), "ja") {
-		region = "ap-northeast-1"
+	if region == "" {
+		region = "us-east-1"
+		if strings.HasPrefix(os.Getenv("LANG"), "ja") {
+			region = "ap-northeast-1"
+		}
 	}
 	opts := []optsFunc{
 		config.WithRegion(region),
@@ -55,8 +57,9 @@ func NewS3Model(endpointURL string) *S3Model {
 	if endpointURL != "" {
 		endpoint := aws.EndpointResolverFunc(func(service, r string) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				URL:           endpointURL,
-				SigningRegion: r,
+				URL:               endpointURL,
+				SigningRegion:     r,
+				HostnameImmutable: pathStyle,
 			}, nil
 		})
 		s3m.endpointURL = endpointURL

@@ -37,6 +37,8 @@ type CLI struct {
 
 	Bucket      string `help:"S3 bucket name" short:"b" optional`
 	EndpointURL string `help:"endpoint url request to" optional`
+	Region      string `help:"region request to" optional`
+	PathStyle   bool   `help:"path-style of endpoint" optional`
 }
 
 func init() {
@@ -79,6 +81,8 @@ func main() {
 	err := c.NewController(
 		cli.Bucket,
 		cli.EndpointURL,
+		cli.Region,
+		cli.PathStyle,
 		cli.Debug,
 		buildInfo.String(),
 	).Run()
