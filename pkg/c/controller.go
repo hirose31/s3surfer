@@ -25,6 +25,7 @@ type Controller struct {
 // NewController ...
 func NewController(
 	bucket string,
+	endpoint string,
 	debug string,
 	version string,
 ) Controller {
@@ -38,7 +39,7 @@ func NewController(
 	}
 
 	fmt.Printf("fetch available buckets...\n")
-	m := m.NewS3Model()
+	m := m.NewS3Model(endpoint)
 	if bucket != "" {
 		err := m.SetBucket(bucket)
 		if err != nil {

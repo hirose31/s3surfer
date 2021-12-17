@@ -21,6 +21,7 @@ Just download the appropriate version of [executable from latest release](https:
 | Option | Description |
 | --- | --- |
 | `-b STRING` | S3 bucket name (optional) |
+| `--endpoint-url STRING` | Endpoint URL to request |
 | `-d STRING` | Write debug log into file |
 | `--version` | Print version information and exit |
 | `-h` | Show help messages |

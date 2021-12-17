@@ -20,6 +20,8 @@ type S3Bucket struct {
 	Region string
 }
 
+type optsFunc = func(*config.LoadOptions) error
+
 // S3Model ...
 type S3Model struct {
 	bucket           string
@@ -28,6 +30,7 @@ type S3Model struct {
 	client           *s3.Client
 	downloader       *s3manager.Downloader
 	cache            map[string]*ObjectCache
+	endpointURL      string
 }
 
 // ObjectCache ...
@@ -37,7 +40,7 @@ type ObjectCache struct {
 }
 
 // NewS3Model ...
-func NewS3Model() *S3Model {
+func NewS3Model(endpointURL string) *S3Model {
 	s3m := S3Model{}
 
 	// client
@@ -45,7 +48,22 @@ func NewS3Model() *S3Model {
 	if strings.HasPrefix(os.Getenv("LANG"), "ja") {
 		region = "ap-northeast-1"
 	}
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+	opts := []optsFunc{
+		config.WithRegion(region),
+	}
+
+	if endpointURL != "" {
+		endpoint := aws.EndpointResolverFunc(func(service, r string) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				URL:           endpointURL,
+				SigningRegion: r,
+			}, nil
+		})
+		s3m.endpointURL = endpointURL
+		opts = append(opts, config.WithEndpointResolver(endpoint))
+	}
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), opts...)
 	if err != nil {
 		panic(err)
 	}
@@ -118,8 +136,21 @@ func (s3m *S3Model) SetBucket(bucket string) error {
 		// found
 		s3m.bucket = bucket
 
+		opts := []optsFunc{
+			config.WithRegion(ab.Region),
+		}
+		if s3m.endpointURL != "" {
+			endpoint := aws.EndpointResolverFunc(func(service, r string) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL:           s3m.endpointURL,
+					SigningRegion: r,
+				}, nil
+			})
+			opts = append(opts, config.WithEndpointResolver(endpoint))
+		}
+
 		// re-create client with region
-		cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(ab.Region))
+		cfg, err := config.LoadDefaultConfig(context.TODO(), opts...)
 		if err != nil {
 			panic(err)
 		}
