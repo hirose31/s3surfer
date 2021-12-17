@@ -1,3 +1,8 @@
+## [v1.0.3](https://github.com/hirose31/s3surfer/compare/v1.0.2...v1.0.3) (2021-12-17)
+
+* Introduce --endpoint-url option [#7](https://github.com/hirose31/s3surfer/pull/7) ([kazeburo](https://github.com/kazeburo))
+* Topic/delete for loop [#6](https://github.com/hirose31/s3surfer/pull/6) ([gongqi-zhen](https://github.com/gongqi-zhen))
+
 ## [v1.0.2](https://github.com/hirose31/s3surfer/compare/v1.0.1...v1.0.2) (2021-10-27)
 
 * Handle odd object key [#5](https://github.com/hirose31/s3surfer/pull/5) ([hirose31](https://github.com/hirose31))
