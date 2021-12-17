@@ -35,7 +35,8 @@ type CLI struct {
 	Debug   string           `help:"write debug log info file" short:"d" type:"path"`
 	Version kong.VersionFlag `help:"print version information and exit"`
 
-	Bucket string `help:"S3 bucket name" short:"b" optional`
+	Bucket      string `help:"S3 bucket name" short:"b" optional`
+	EndpointURL string `help:"endpoint url request to" optional`
 }
 
 func init() {
@@ -77,6 +78,7 @@ func main() {
 
 	err := c.NewController(
 		cli.Bucket,
+		cli.EndpointURL,
 		cli.Debug,
 		buildInfo.String(),
 	).Run()
