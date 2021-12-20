@@ -43,7 +43,7 @@ type CLI struct {
 
 func init() {
 	// https://github.com/rivo/tview/wiki/FAQ#why-do-my-borders-look-weird
-	if os.Getenv("LC_CTYPE") != "en_US.UTF-8" {
+	if os.Getenv("LC_CTYPE") != "en_US.UTF-8" && runtime.GOOS != "windows" {
 		err := os.Setenv("LC_CTYPE", "en_US.UTF-8")
 		if err != nil {
 			panic(err)
