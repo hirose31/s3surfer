@@ -1,3 +1,9 @@
+## [v1.0.4](https://github.com/hirose31/s3surfer/compare/v1.0.3...v1.0.4) (2021-12-20)
+
+* Prepare to release v1.0.4 [#10](https://github.com/hirose31/s3surfer/pull/10) ([hirose31](https://github.com/hirose31))
+* Support Windows [#9](https://github.com/hirose31/s3surfer/pull/9) ([mattn](https://github.com/mattn))
+* Add --region and --path-style for other S3 compatible services [#8](https://github.com/hirose31/s3surfer/pull/8) ([mattn](https://github.com/mattn))
+
 ## [v1.0.3](https://github.com/hirose31/s3surfer/compare/v1.0.2...v1.0.3) (2021-12-17)
 
 * Introduce --endpoint-url option [#7](https://github.com/hirose31/s3surfer/pull/7) ([kazeburo](https://github.com/kazeburo))

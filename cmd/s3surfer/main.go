@@ -12,7 +12,7 @@ import (
 	"github.com/hirose31/s3surfer/pkg/c"
 )
 
-const version = "1.0.3"
+const version = "1.0.4"
 
 var revision = "HEAD"
 
