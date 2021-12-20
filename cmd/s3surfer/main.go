@@ -35,8 +35,10 @@ type CLI struct {
 	Debug   string           `help:"write debug log info file" short:"d" type:"path"`
 	Version kong.VersionFlag `help:"print version information and exit"`
 
-	Bucket      string `help:"S3 bucket name" short:"b" optional`
-	EndpointURL string `help:"endpoint url request to" optional`
+	Bucket      string `help:"S3 bucket name" short:"b" optional env:"S3SURFER_BUCKET"`
+	EndpointURL string `help:"endpoint url request to" optional env:"S3SURFER_ENDPOINT_URL"`
+	Region      string `help:"region request to" optional env:"S3SURFER_REGION"`
+	PathStyle   bool   `help:"path-style of endpoint" optional env:"S3SURFER_PATHSTYLE"`
 }
 
 func init() {
@@ -79,6 +81,8 @@ func main() {
 	err := c.NewController(
 		cli.Bucket,
 		cli.EndpointURL,
+		cli.Region,
+		cli.PathStyle,
 		cli.Debug,
 		buildInfo.String(),
 	).Run()

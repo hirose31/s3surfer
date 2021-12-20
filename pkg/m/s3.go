@@ -25,6 +25,7 @@ type optsFunc = func(*config.LoadOptions) error
 // S3Model ...
 type S3Model struct {
 	bucket           string
+	pathStyle        bool
 	availableBuckets []S3Bucket
 	prefix           string
 	client           *s3.Client
@@ -40,13 +41,15 @@ type ObjectCache struct {
 }
 
 // NewS3Model ...
-func NewS3Model(endpointURL string) *S3Model {
+func NewS3Model(endpointURL string, region string, pathStyle bool) *S3Model {
 	s3m := S3Model{}
 
 	// client
-	region := "us-east-1"
-	if strings.HasPrefix(os.Getenv("LANG"), "ja") {
-		region = "ap-northeast-1"
+	if region == "" {
+		region = "us-east-1"
+		if strings.HasPrefix(os.Getenv("LANG"), "ja") {
+			region = "ap-northeast-1"
+		}
 	}
 	opts := []optsFunc{
 		config.WithRegion(region),
@@ -55,8 +58,9 @@ func NewS3Model(endpointURL string) *S3Model {
 	if endpointURL != "" {
 		endpoint := aws.EndpointResolverFunc(func(service, r string) (aws.Endpoint, error) {
 			return aws.Endpoint{
-				URL:           endpointURL,
-				SigningRegion: r,
+				URL:               endpointURL,
+				SigningRegion:     r,
+				HostnameImmutable: pathStyle,
 			}, nil
 		})
 		s3m.endpointURL = endpointURL
@@ -114,6 +118,8 @@ func NewS3Model(endpointURL string) *S3Model {
 	// cache
 	s3m.cache = map[string]*ObjectCache{}
 
+	s3m.pathStyle = pathStyle
+
 	return &s3m
 }
 
@@ -142,8 +148,9 @@ func (s3m *S3Model) SetBucket(bucket string) error {
 		if s3m.endpointURL != "" {
 			endpoint := aws.EndpointResolverFunc(func(service, r string) (aws.Endpoint, error) {
 				return aws.Endpoint{
-					URL:           s3m.endpointURL,
-					SigningRegion: r,
+					URL:               s3m.endpointURL,
+					SigningRegion:     r,
+					HostnameImmutable: s3m.pathStyle,
 				}, nil
 			})
 			opts = append(opts, config.WithEndpointResolver(endpoint))
