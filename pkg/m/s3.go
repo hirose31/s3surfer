@@ -163,7 +163,9 @@ func (s3m *S3Model) SetBucket(bucket string) error {
 		}
 
 		s3m.client = s3.NewFromConfig(cfg)
-		s3m.downloader = s3manager.NewDownloader(s3m.client)
+		s3m.downloader = s3manager.NewDownloader(s3m.client, func(d *s3manager.Downloader) {
+			d.BufferProvider = s3manager.NewPooledBufferedWriterReadFromProvider(8 * 1024 * 1024) // 8MB
+		})
 
 		return nil
 	}
