@@ -1,3 +1,4 @@
+// Package m provides S3 models.
 package m
 
 import (
@@ -283,7 +284,7 @@ func (s3m S3Model) Download(object s3types.Object, destPath string) (n int64, er
 		return 0, fmt.Errorf("exists")
 	}
 
-	fp, err := os.Create(destPath)
+	fp, err := os.Create(filepath.Clean(destPath))
 	if err != nil {
 		return 0, err
 	}

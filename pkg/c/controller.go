@@ -1,3 +1,4 @@
+// Package c provides Controller.
 package c
 
 import (
