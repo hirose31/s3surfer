@@ -3,6 +3,7 @@ MAIN = ./cmd/s3surfer
 VERSION := $$(make -s show-version)
 CURRENT_REVISION := $(shell git rev-parse --short HEAD)
 BUILD_LDFLAGS := "-s -w -X main.revision=$(CURRENT_REVISION)"
+GOBIN ?= $(shell go env GOPATH)/bin
 u := $(if $(update),-u) # make update=1 deps
 
 .PHONY: help
@@ -75,11 +76,27 @@ deps:
 	go mod tidy
 
 .PHONY: devel-deps
-devel-deps:
+devel-deps: $(GOBIN)/golint $(GOBIN)/staticcheck $(GOBIN)/gosec $(GOBIN)/gobump $(GOBIN)/ghch $(GOBIN)/ghr $(GOBIN)/goxz
+
+$(GOBIN)/golint:
 	go install golang.org/x/lint/golint@latest
+
+$(GOBIN)/staticcheck:
 	go install honnef.co/go/tools/cmd/staticcheck@latest
+
+$(GOBIN)/gosec:
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+$(GOBIN)/gobump:
 	go install github.com/x-motemen/gobump/cmd/gobump@latest
+
+$(GOBIN)/ghch:
 	go install github.com/Songmu/ghch/cmd/ghch@latest
+
+$(GOBIN)/ghr:
 	go install github.com/tcnksm/ghr@latest
+
+$(GOBIN)/goxz:
 	go install github.com/Songmu/goxz/cmd/goxz@latest
+
+
