@@ -1,6 +1,6 @@
 module github.com/hirose31/s3surfer
 
-go 1.17
+go 1.19
 
 require (
 	github.com/alecthomas/kong v0.2.17

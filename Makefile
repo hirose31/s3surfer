@@ -3,8 +3,7 @@ MAIN = ./cmd/s3surfer
 VERSION := $$(make -s show-version)
 CURRENT_REVISION := $(shell git rev-parse --short HEAD)
 BUILD_LDFLAGS := "-s -w -X main.revision=$(CURRENT_REVISION)"
-GOBIN ?= $(shell go env GOPATH)/bin
-export GO111MODULE=on
+u := $(if $(update),-u) # make update=1 deps
 
 .PHONY: help
 .DEFAULT_GOAL := help
@@ -16,56 +15,33 @@ help:
 all: clean build ## clean and build
 
 .PHONY: build
-build: ## build
+build: deps ## build
 	go build -ldflags=$(BUILD_LDFLAGS) -o $(BIN) $(MAIN)
 
 .PHONY: install
-install: ## install
+install: deps ## install
 	go install -ldflags=$(BUILD_LDFLAGS) $(MAIN)
-
-.PHONY: show-version
-show-version: $(GOBIN)/gobump ## show-version
-	@gobump show -r $(MAIN)
-
-$(GOBIN)/gobump:
-	@cd && go get github.com/x-motemen/gobump/cmd/gobump
-
-$(GOBIN)/ghch:
-	@cd && go get github.com/Songmu/ghch/cmd/ghch
-
-$(GOBIN)/golint:
-	@cd && go get golang.org/x/lint/golint
-
-$(GOBIN)/gosec:
-	@cd && go get github.com/securego/gosec/v2/cmd/gosec
-
-.PHONY: cross
-cross: $(GOBIN)/goxz ## build for cross platforms
-	goxz -arch amd64,arm64 -os linux,darwin -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) -trimpath $(MAIN)
-	goxz -arch amd64       -os windows      -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) -trimpath $(MAIN)
-
-$(GOBIN)/goxz:
-	cd && go get github.com/Songmu/goxz/cmd/goxz
-
-.PHONY: test
-test: build ## test
-	go test -v ./...
-
-.PHONY: lint
-lint: $(GOBIN)/golint ## run golint
-	golint -set_exit_status ./...
-
-.PHONY: security
-security: $(GOBIN)/gosec ## run gosec
-	gosec ./...
 
 .PHONY: clean
 clean: ## clean
 	rm -rf $(BIN) goxz
 	go clean
 
+.PHONY: test
+test: deps ## test
+	go test -v ./...
+
+.PHONY: lint
+lint: devel-deps ## run golint and staticcheck
+	golint -set_exit_status ./...
+	staticcheck -checks all ./...
+
+.PHONY: security
+security: devel-deps ## run gosec
+	gosec ./...
+
 .PHONY: bump
-bump: $(GOBIN)/gobump $(GOBIN)/ghch ## release new version
+bump: devel-deps  ## release new version
 ifneq ($(shell git status --porcelain),)
 	$(error git workspace is dirty)
 endif
@@ -79,9 +55,31 @@ endif
 	git push origin master
 	git push origin "refs/tags/v$(VERSION)"
 
-.PHONY: upload
-upload: $(GOBIN)/ghr ## upload
-	ghr "v$(VERSION)" goxz
+.PHONY: cross
+cross: devel-deps ## build for cross platforms
+	goxz -arch amd64,arm64 -os linux,darwin -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) -trimpath .
+	goxz -arch amd64       -os windows      -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) -trimpath .
 
-$(GOBIN)/ghr:
-	cd && go get github.com/tcnksm/ghr
+.PHONY: upload
+upload: devel-deps ## upload
+	ghr "v$(VERSION)" goxz/
+
+
+.PHONY: show-version
+show-version: devel-deps ## show-version
+	@gobump show -r $(MAIN)
+
+.PHONY: deps
+deps:
+	go get ${u} -d -v $(MAIN)
+	go mod tidy
+
+.PHONY: devel-deps
+devel-deps:
+	go install golang.org/x/lint/golint@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install github.com/x-motemen/gobump/cmd/gobump@latest
+	go install github.com/Songmu/ghch/cmd/ghch@latest
+	go install github.com/tcnksm/ghr@latest
+	go install github.com/Songmu/goxz/cmd/goxz@latest
