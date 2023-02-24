@@ -1,3 +1,8 @@
+## [v1.0.6](https://github.com/hirose31/s3surfer/compare/v1.0.5...v1.0.6) (2023-02-24)
+
+* Upgrade golang.org/x/text [#13](https://github.com/hirose31/s3surfer/pull/13) ([hirose31](https://github.com/hirose31))
+* Pass make lint security [#12](https://github.com/hirose31/s3surfer/pull/12) ([hirose31](https://github.com/hirose31))
+
 ## [v1.0.5](https://github.com/hirose31/s3surfer/compare/v1.0.4...v1.0.5) (2022-04-28)
 
 
